@@ -1,18 +1,30 @@
-*! version 0.0.1 Percy Soto-Becerra 31jul2021
+*! version 0.0.2 Percy Soto-Becerra 31jul2021
 program qresid
 	version 17.0
-	syntax newvarname(max=1) [if] [in] [, STAndardized nqres(int 4)]
+	syntax newvarname(max=1) [if] [in] [, standardized nqres(int 4)]
 	/*Quantile residual for normal linear regression (by Ordinary Least Square 
 	or Maximum Likelihood estimation*/
 	if "`e(cmd)'" == "regress" {
 		tempvar residuals
 		predict double `residuals', residuals
 		gen `typlist' `varlist' = `residuals' / `e(rmse)' `if' `in'
+		if "`standardized'" == "standardized" {
+			tempvar hat
+			local stand  std
+			predict double `hat', hat
+			gen `typlist' `varlist'_`stand' = `varlist' / sqrt(1 - `hat') 
+		}
 	}
 	else if "`e(cmd)'" == "glm" & "`e(varfunct)'" == "Gaussian" {
 		tempvar deviance_res
 		predict double `deviance_res', deviance
 		gen `typlist' `varlist' = `deviance_res' / `e(dispers)' `if' `in'
+		if "`standardized'" == "standardized" {
+			tempvar hat
+			local stand std
+			predict double `hat', hat
+			gen `typlist' `varlist'_`stand' = `varlist' / sqrt(1 - `hat') `if' `in'
+		}
 	}
 	/*Quantile residual for bernoulli/binomial logistic regression 
 	(GLM, family = Bernoulli/Binomial, link = any admissible)*/
@@ -26,6 +38,14 @@ program qresid
 		foreach i of numlist 1/`nqres' {
 			gen double `u'`i' = runiform(`a', `b')
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
+		}
+		if "`standardized'" == "standardized" {
+			tempvar hat
+			local stand std
+			predict double `hat', hat
+			foreach i of numlist 1/`nqres' {
+			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
+			}
 		}
 	} 
 	else if "`e(cmd)'" == "glm" & ("`e(varfunct)'" == "Bernoulli" | /// 
@@ -41,6 +61,14 @@ program qresid
 			gen double `u'`i' = runiform(`a', `b')
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 		}
+		if "`standardized'" == "standardized" {
+			tempvar hat
+			local stand std
+			predict double `hat', hat
+			foreach i of numlist 1/`nqres' {
+			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
+			}
+		}
 	} 
 	/*Quantile residual for Poisson regression 
 	(GLM, family = Poisson, link = any admissible)*/
@@ -53,6 +81,29 @@ program qresid
 		foreach i of numlist 1/`nqres' {
 			gen double `u'`i' = runiform(`a', `b')
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
+		}		
+		
+		if "`standardized'" == "standardized" {
+		    
+			local oldformula = "`e(cmdline)'"
+			local preformula = substr("`oldformula'", 8, .)
+			local pos = strpos("`preformula'", ",") - 1
+			if "`pos'" == "-1" {
+				local new_formula = "`preformula'"
+			} 
+			else {
+				local new_formula = substr("`preformula'", 1, `pos')
+			}
+
+			quietly glm `new_formula', family(poisson) link(log)
+			tempvar hat
+			local stand std
+			predict double `hat', hat
+			quietly `oldformula'
+			
+			foreach i of numlist 1/`nqres' {
+			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
+			}
 		}
 	}
 	else if "`e(cmd)'" == "glm" & "`e(varfunct)'" == "Poisson" {
@@ -64,6 +115,14 @@ program qresid
 		foreach i of numlist 1/`nqres' {
 			gen double `u'`i' = runiform(`a', `b')
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
+		}
+		if "`standardized'" == "standardized" {
+			tempvar hat
+			local stand std
+			predict double `hat', hat
+			foreach i of numlist 1/`nqres' {
+			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
+			}
 		}
 	}
 	/*Quantile residual for Negative Binomial Regression 
@@ -93,6 +152,14 @@ program qresid
 			gen double `u'`i' = runiform(`a', `b')
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 		}
+		if "`standardized'" == "standardized" {
+			tempvar hat
+			local stand std
+			predict double `hat', hat
+			foreach i of numlist 1/`nqres' {
+			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
+			}
+		}
 	}
 	else if "`e(cmd)'" == "nbreg" {
 		tempvar y alphaCam size mu p ones max a b u
@@ -109,9 +176,30 @@ program qresid
 			gen double `u'`i' = runiform(`a', `b')
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 		}
+		if "`standardized'" == "standardized" {
+		    
+			local oldformula = "`e(cmdline)'"
+			local preformula = substr("`oldformula'", 6, .)
+			local pos = strpos("`preformula'", ",") - 1
+			if "`pos'" == "-1" {
+				local new_formula = "`preformula'"
+			} 
+			else {
+				local new_formula = substr("`preformula'", 1, `pos')
+			}
+			
+			quietly glm `new_formula', family(nbinomial ml) link(log)
+			tempvar hat
+			local stand std
+			predict double `hat', hat
+			quietly `oldformula'
+			
+			foreach i of numlist 1/`nqres' {
+			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
+			}
+		}
 	}
 	else {
 		display "It is not a valid GLM"
 	}
 end
-
