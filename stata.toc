@@ -1,0 +1,8 @@
+v 0.0.1
+d Materials by Percy Soto-Becerra
+d percys1991@gmail.com
+d https://github.com/psotob
+
+d 'qresid': Create (randomized) quantile residual for generalized linear model assessment of asummptions.
+
+p qresid

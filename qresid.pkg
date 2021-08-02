@@ -1,0 +1,9 @@
+v 0.0.1
+d 'QRESID': Randomized quantile residual
+d 
+d Create (randomized) quantile residual for generalized linear model assessment of asummptions.
+d 
+d Distribution-Date:   20210801
+d License: MIT
+d 
+F qreisd.ado
