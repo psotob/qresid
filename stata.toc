@@ -1,4 +1,4 @@
-v 0.0.1
+v 0.0.2
 d Materials by Percy Soto-Becerra
 d percys1991@gmail.com
 d https://github.com/psotob
