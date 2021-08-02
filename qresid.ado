@@ -71,7 +71,7 @@ program qresid
 	else if "`e(cmd)'" == "glm" & "`e(varfunct)'" == "Neg. Binomial" {
 		tempvar y alphaCam size mu p ones max a b u
 		gen double `y' = `e(depvar)'
-		predict double `mu', n /*Fitted values in count data n = exp(ir + exposure)*/
+		predict double `mu', mu /*Fitted values in count data n = exp(ir + exposure)*/
 		gen `ones' = 1
 		egen  `max' = rowmax(`y' `ones')
 		
