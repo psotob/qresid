@@ -1,6 +1,6 @@
 *! version 0.0.4 Percy Soto-Becerra 06ago2021
 program define qresid
-	version 17.0
+	version 15.0
 	syntax newvarname(max=1) [if] [in] [, standardized nqres(int 4) diag_glm]
 	/*Quantile residual for normal linear regression (by Ordinary Least Square 
 	or Maximum Likelihood estimation*/
