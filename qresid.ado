@@ -107,7 +107,7 @@ program define qresid
 			
 			foreach i of numlist 1 / `nqres' {
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
-				label variable `varlist'_`stand'`i' "Standardized randomized quantile residuals `i'"
+				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
 			}
 
 		}
@@ -133,7 +133,7 @@ program define qresid
 			predict double `hat', hat
 			foreach i of numlist 1 / `nqres' {
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
-				label variable `varlist'_`stand'`i' "Standardized randomized quantile residuals `i'"
+				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
 			}
 			if "`diag_glm'" == "diag_glm" {
 			    tempvar mu working
@@ -201,7 +201,7 @@ program define qresid
 			
 			foreach i of numlist 1 / `nqres' {
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
-				label variable `varlist'_`stand'`i' "Standardized randomized quantile residuals `i'"
+				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
 			}
 			
 		}
@@ -224,7 +224,7 @@ program define qresid
 			predict double `hat', hat
 			foreach i of numlist 1 / `nqres' {
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
-				label variable `varlist'_`stand'`i' "Standardized randomized quantile residuals `i'"
+				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
 			}
 			if "`diag_glm'" == "diag_glm" {
 			    tempvar mu working
@@ -277,7 +277,7 @@ program define qresid
 			predict double `hat', hat
 			foreach i of numlist 1 / `nqres' {
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
-				label variable `varlist'_`stand'`i' "Standardized randomized quantile residuals `i'"
+				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
 			}
 			if "`diag_glm'" == "diag_glm" {
 			    tempvar mu working
@@ -348,7 +348,7 @@ program define qresid
 			
 			foreach i of numlist 1 / `nqres' {
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
-				label variable `varlist'_`stand'`i' "Standardized randomized quantile residuals `i'"
+				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
 			}
 		}
 	}
