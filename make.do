@@ -10,6 +10,6 @@ make qresid,  toc pkg  version(0.0.4)                                        ///
      email("percys1991@gmail.com")                                           ///
      url("https://github.com/psotob")                                        ///
      title("Randomized quantile residual")                                   ///
-     description("Create (randomized) quantile residual for generalized linear model assessment of asummptions.") ///
+     description("Create (randomized) quantile residual for generalized linear model assessment of asummptions.In development yet! Suggestions to percys1991@gmail.com") ///
      install("qresid.ado")                                                   ///
      iancillary("")                                                         
