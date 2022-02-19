@@ -1,5 +1,7 @@
 _v. 0.0.4_  
 
+[![DOI](https://zenodo.org/badge/391775796.svg)](https://zenodo.org/badge/latestdoi/391775796)
+
 `qresid` : Randomized quantile residual
 =======================================
 
