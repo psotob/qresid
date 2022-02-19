@@ -1,4 +1,4 @@
-_v. 0.0.4_  
+_v. 0.0.5_ (Pre-released) 
 
 [![DOI](https://zenodo.org/badge/391775796.svg)](https://zenodo.org/badge/latestdoi/391775796)
 
