@@ -1,4 +1,4 @@
-*! version 0.0.4 Percy Soto-Becerra 06ago2021
+*! version 0.0.5 Percy Soto-Becerra 06ago2021
 program define qresid
 	version 15.0
 	syntax newvarname(max=1) [if] [in] [, standardized nqres(int 4) diag_glm]
