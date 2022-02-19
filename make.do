@@ -3,7 +3,7 @@
 // DO NOT FORGET to update the version of the package, if changed!
 // for more information visit http://github.com/haghish/github
 
-make qresid,  toc pkg  version(0.0.4)                                        ///
+make qresid,  toc pkg  version(0.0.5)                                        ///
      license("MIT")                                                          ///
      author("Percy Soto-Becerra")                                            ///
      affiliation("")                                                         ///
