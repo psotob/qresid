@@ -1,25 +1,191 @@
 *! version 0.0.5 Percy Soto-Becerra 06ago2021
+
+/***
+{* *! version 1.0  5 Jul 2022}{...}
+{vieweralsosee "" "--"}{...}
+{vieweralsosee "Install command2" "ssc install command2"}{...}
+{vieweralsosee "Help command2 (if installed)" "help command2"}{...}
+{viewerjumpto "Syntax" "qresid##syntax"}{...}
+{viewerjumpto "Description" "qresid##description"}{...}
+{viewerjumpto "Options" "qresid##options"}{...}
+{viewerjumpto "Remarks" "qresid##remarks"}{...}
+{viewerjumpto "Examples" "qresid##examples"}{...}
+{viewerjumpto "References" "qresid##references"}{...}
+
+Title
+====== 
+
+{bf:qresid} {hline 2} (Randomized) quantile residuals for diagnostic of models 
+
+
+Syntax
+------ 
+
+> __qresid__ _newvarname_ [_{help if}_] [_{help in}_] [, _options_]
+
+Options
+-------
+
+| _options_         |  Description                                                             |
+|:------------------|:-------------------------------------------------------------------------|
+| standardized      | compute leverage standardized quantile residuals                        |
+| nqres(#)             | number of randomized quantile residuals; # default is 4 for discrete outcomes; not apply in continuous outcomes                   |
+
+
+Description
+-----------
+
+__qresid__ calculates (randomized) quantile residuals for the diagnostic of a great variety of models. 
+
+This version of __qresid__ only allows to create quantile residuals for _generalized linear models_. Further updates will include _zero inflated models_, _beta regression_ and others _related models_. 
+
+
+Remarks
+--------
+
+__qresid__ implements the computation of quantile residuals proposed by [Peter K. Dunn and Gordon K. Smyth (1996)](http://www.jstor.org/stable/1390802) for generalized linear models (GLM). 
+
+The residuals and their plots help to evaluate the assumptions of the statistical models. In the general linear model with normal outcome distribution, the residuals (raw, standardized, and studentized) follow a normal distribution when the model is right. 
+
+In the case of generalized linear models (GLMs) for non-normal outcome distributions, the deviance and Pearson residuals (and their standardized forms) do not necessarily follow a normal distribution. This makes model diagnostic difficult tin many practical scenarios. As if that were not enough, the GLM residuals for discrete outcomes can present patterns of parallel bands that artifact their proper visual inspection. 
+
+
+Examples
+--------
+
+	__1) Outcome with binomial distribution__
+	
+	~~~
+		. clear all
+		
+		. set seed 123
+		
+		. set obs 30
+		
+		. gen n = 20
+		
+		. gen y = rbinomial(n, 0.05)
+		
+		. gen x = _n
+
+		. glm y x, family(binomial n) link(logit)
+		
+		. predict dev, dev
+
+		. qresid res1
+		
+		. qresid res2, nqres(1)
+		
+		. qresid res3, standardized nqres(1)
+
+		. qnorm dev, name(qq1, replace) nodraw
+		
+		. qnorm res11, name(qq2, replace) nodraw
+		
+		. qnorm res21, name(qq3, replace) nodraw
+		
+		. qnorm res3_std1, name(qq4, replace) nodraw
+		
+		. graph combine qq1 qq2 qq3 qq4
+	~~~
+		
+	__2) Outcome with Poisson distribution__
+	
+	~~~
+		. clear all 
+		
+		. set seed 123
+		
+		. set obs 50
+		
+		. gen y = rpoisson(1)
+		
+		. gen x = _n
+
+		. glm y x, family(poisson)
+		
+		. predict dev, dev
+
+		. qresid res1
+		
+		. qresid res2, nqres(1)
+		
+		. qresid res3, standardized nqres(1)
+
+		. qnorm dev, name(qq1, replace) nodraw
+		
+		. qnorm res11, name(qq2, replace) nodraw
+		
+		. qnorm res21, name(qq3, replace) nodraw
+		
+		. qnorm res3_std1, name(qq4, replace) nodraw
+		
+		. graph combine qq1 qq2 qq3 qq4
+
+		. poisson y x
+
+		. capture drop res*
+		
+		. qresid res1
+		
+		. qresid res2, nqres(1)
+		
+		. qresid res3, standardized nqres(1)
+
+		. qnorm dev, name(qq1, replace) nodraw
+		
+		. qnorm res11, name(qq2, replace) nodraw
+		
+		. qnorm res21, name(qq3, replace) nodraw
+		
+		. qnorm res3_std1, name(qq4, replace) nodraw
+		
+		. graph combine qq1 qq2 qq3 qq4
+		~~~
+		
+		
+Author
+------
+
+Percy Soto-Becerra  
+InkaStats Data Science Solutions - Medical Branch   
+percys1991@gmail.com
+
+
+References
+----------
+{pstd}
+
+Peter K. Dunn & Gordon K. Smyth. 1996. 
+[Randomized Quantile Residuals](http://www.jstor.org/stable/1390802). Journal of Computational and Graphical Statistics, 5:3, 236-244.
+
+- - -
+
+This help file was dynamically produced by 
+[MarkDoc Literate Programming package](http://www.haghish.com/markdoc/) 
+***/
+
 program define qresid
 	version 15.0
-	syntax newvarname(max=1) [if] [in] [, standardized nqres(int 4) diag_glm]
+	syntax newvarname(max=1) [if] [in] [, standardized nqres(int 4)] 
+	
 	/*Quantile residual for normal linear regression (by Ordinary Least Square 
 	or Maximum Likelihood estimation*/
+	
 	if "`e(cmd)'" == "regress" {
 		tempvar residuals
 		predict double `residuals', residuals
 		gen `typlist' `varlist' = `residuals' / `e(rmse)' `if' `in'
 		label variable `varlist' "Quantile residuals"
+		
 		/*Creating standardized quantile residual*/
+		
 		if "`standardized'" == "standardized" {
 			tempvar hat
 			local stand  std
 			predict double `hat', hat
 			gen `typlist' `varlist'_`stand' = `varlist' / sqrt(1 - `hat') 
 			label variable `varlist'_`stand' "Standardized quantile residuals"
-			
-			if "`diag_glm'" == "diag_glm" {
-			    display "regress is not supported yet, use glm ..., family(gaussian) link(identity)"
-			}
 		}
 	
 	}
@@ -28,32 +194,21 @@ program define qresid
 		predict double `deviance_res', deviance
 		gen `typlist' `varlist' = `deviance_res' / `e(dispers)' `if' `in'
 		label variable `varlist' "Quantile residuals"
+		
 		/*Creating standardized quantile residual*/
+		
 		if "`standardized'" == "standardized" {
 			tempvar hat
 			local stand std
 			predict double `hat', hat
 			gen `typlist' `varlist'_`stand' = `varlist' / sqrt(1 - `hat') `if' `in'
 			label variable `varlist'_`stand' "Standardized quantile residuals"
-			
-			if "`diag_glm'" == "diag_glm" {
-			    tempvar mu working
-				predict double `mu' if e(sample), mu
-				gen `typlist' mu_scaled = `mu'
-				predict double xb if e(sample), xb
-				predict double `working' if e(sample), working
-				gen `typlist' workresp = `working' + xb
-				predict `typlist' cooksd if e(sample), cooksd
-				predict `typlist' dev_student if e(sample), deviance studentized 
-				predict `typlist' hat_lever if e(sample), hat
-				lab var workresp "Working responses"
-				lab var mu_scaled "Fitted values (on const. inf. scale)"
-				lab var hat_lever "Leverage (h_i of Hat matrix's diagonal)"
-			}
 		}
 	}
+	
 	/*Quantile residual for bernoulli/binomial logistic regression 
 	(GLM, family = Bernoulli/Binomial, link = any admissible)*/
+	
 	else if "`e(cmd)'" == "logit" | "`e(cmd)'" == "logistic" {
 		tempvar n p y a b u
 		predict double `p', pr
@@ -66,7 +221,9 @@ program define qresid
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 			label variable `varlist'`i' "Randomized quantile residuals `i'"
 		}
+		
 		/*Creating standardized quantile residual*/
+		
 		if "`standardized'" == "standardized" {
 			local oldformula = "`e(cmdline)'"
 			if "`e(cmd)'" == "logit" {
@@ -87,21 +244,6 @@ program define qresid
 			tempvar hat
 			local stand std
 			predict double `hat', hat
-			
-			if "`diag_glm'" == "diag_glm" {
-			    tempvar mu working
-				predict double `mu' if e(sample), mu
-				gen `typlist' mu_scaled = sin(sqrt(`mu')) ^ (-1)
-				predict double xb if e(sample), xb
-				predict double `working' if e(sample), working
-				gen `typlist' workresp = `working' + xb
-				predict `typlist' cooksd if e(sample), cooksd
-				predict `typlist' dev_student if e(sample), deviance studentized 
-				predict `typlist' hat_lever if e(sample), hat
-				lab var workresp "Working responses"
-				lab var mu_scaled "Fitted values (on const. inf. scale)"
-				lab var hat_lever "Leverage (h_i of Hat matrix's diagonal)"
-			}
 			
 			quietly `oldformula'
 			
@@ -126,7 +268,9 @@ program define qresid
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 			label variable `varlist'`i' "Randomized quantile residuals `i'"
 		}
+		
 		/*Creating standardized quantile residual*/
+		
 		if "`standardized'" == "standardized" {
 			tempvar hat
 			local stand std
@@ -135,24 +279,12 @@ program define qresid
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
 				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
 			}
-			if "`diag_glm'" == "diag_glm" {
-			    tempvar mu working
-				predict double `mu' if e(sample), mu
-				gen `typlist' mu_scaled = sin(sqrt(`mu')) ^ (-1) 
-				predict double xb if e(sample), xb
-				predict double `working' if e(sample), working
-				gen `typlist' workresp = `working' + xb
-				predict `typlist' cooksd if e(sample), cooksd
-				predict `typlist' dev_student if e(sample), deviance studentized 
-				predict `typlist' hat_lever if e(sample), hat
-				lab var workresp "Working responses"
-				lab var mu_scaled "Fitted values (on const. inf. scale)"
-				lab var hat_lever "Leverage (h_i of Hat matrix's diagonal)"
-			}
 		}
 	} 
+	
 	/*Quantile residual for Poisson regression 
 	(GLM, family = Poisson, link = any admissible)*/
+	
 	else if "`e(cmd)'" == "poisson" {
 		tempvar y n mu p a b u
 		gen double `y' = `e(depvar)'
@@ -164,7 +296,9 @@ program define qresid
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 			label variable `varlist'`i' "Randomized quantile residuals `i'"
 		}		
+		
 		/*Creating standardized quantile residual*/
+		
 		if "`standardized'" == "standardized" {
 		    
 			local oldformula = "`e(cmdline)'"
@@ -181,21 +315,6 @@ program define qresid
 			tempvar hat
 			local stand std
 			predict double `hat', hat
-			
-			if "`diag_glm'" == "diag_glm" {
-			    tempvar mu working
-				predict double `mu' if e(sample), mu
-				gen `typlist' mu_scaled = sqrt(`mu')
-				predict double xb if e(sample), xb
-				predict double `working' if e(sample), working
-				gen `typlist' workresp = `working' + xb
-				predict `typlist' cooksd if e(sample), cooksd
-				predict `typlist' dev_student if e(sample), deviance studentized 
-				predict `typlist' hat_lever if e(sample), hat
-				lab var workresp "Working responses"
-				lab var mu_scaled "Fitted values (on const. inf. scale)"
-				lab var hat_lever "Leverage (h_i of Hat matrix's diagonal)"
-			}
 			
 			quietly `oldformula'
 			
@@ -217,7 +336,9 @@ program define qresid
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 			label variable `varlist'`i' "Randomized quantile residuals `i'"
 		}
+		
 		/*Creating standardized quantile residual*/
+		
 		if "`standardized'" == "standardized" {
 			tempvar hat
 			local stand std
@@ -226,24 +347,12 @@ program define qresid
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
 				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
 			}
-			if "`diag_glm'" == "diag_glm" {
-			    tempvar mu working
-				predict double mu if e(sample), mu
-				gen `typlist' mu_scaled = sqrt(`mu')
-				predict double xb if e(sample), xb
-				predict double `working' if e(sample), working
-				gen `typlist' workresp = `working' + xb
-				predict `typlist' cooksd if e(sample), cooksd
-				predict `typlist' dev_student if e(sample), deviance studentized 
-				predict `typlist' hat_lever if e(sample), hat
-				lab var workresp "Working responses"
-				lab var mu_scaled "Fitted values (on const. inf. scale)"
-				lab var hat_lever "Leverage (h_i of Hat matrix's diagonal)"
-			}
 		}
 	}
+	
 	/*Quantile residual for Negative Binomial Regression 
 	(GLM, family = nbinomial, link = any admissible)*/
+	
 	else if "`e(cmd)'" == "glm" & "`e(varfunct)'" == "Neg. Binomial" {
 		tempvar y alphaCam size mu p ones max a b u
 		gen double `y' = `e(depvar)'
@@ -270,7 +379,9 @@ program define qresid
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 			label variable `varlist'`i' "Randomized quantile residuals `i'"
 		}
+		
 		/*Creating standardized quantile residual*/
+		
 		if "`standardized'" == "standardized" {
 			tempvar hat
 			local stand std
@@ -278,20 +389,6 @@ program define qresid
 			foreach i of numlist 1 / `nqres' {
 			    gen `typlist' `varlist'_`stand'`i' = `varlist'`i' / sqrt(1 - `hat') `if' `in'
 				label variable `varlist'_`stand'`i' "Stand. rand. quantile residuals `i'"
-			}
-			if "`diag_glm'" == "diag_glm" {
-			    tempvar mu working
-				predict double `mu' if e(sample), mu
-				gen `typlist' mu_scaled = `mu'
-				predict double xb if e(sample), xb
-				predict double `working' if e(sample), working
-				gen `typlist' workresp = `working' + xb
-				predict `typlist' cooksd if e(sample), cooksd
-				predict `typlist' dev_student if e(sample), deviance studentized 
-				predict `typlist' hat_lever if e(sample), hat
-				lab var workresp "Working responses"
-				lab var mu_scaled "Fitted values (on const. inf. scale)"				
-				lab var hat_lever "Leverage (h_i of Hat matrix's diagonal)"
 			}
 		}
 	}
@@ -311,7 +408,9 @@ program define qresid
 			gen `typlist' `varlist'`i' = invnormal(`u'`i') `if' `in'
 			label variable `varlist'`i' "Randomized quantile residuals `i'"
 		}
+		
 		/*Creating standardized quantile residual*/
+		
 		if "`standardized'" == "standardized" {
 		    
 			local oldformula = "`e(cmdline)'"
@@ -328,21 +427,6 @@ program define qresid
 			tempvar hat
 			local stand std
 			predict double `hat', hat
-			
-			if "`diag_glm'" == "diag_glm" {
-			    tempvar mu working
-				predict double `mu' if e(sample), mu
-				gen `typlist' mu_scaled = `mu'
-				predict double xb if e(sample), xb
-				predict double `working' if e(sample), working
-				gen `typlist' workresp = `working' + xb
-				predict `typlist' cooksd if e(sample), cooksd
-				predict `typlist' dev_student if e(sample), deviance studentized 
-				predict `typlist' hat_lever if e(sample), hat
-				lab var workresp "Working responses"
-				lab var mu_scaled "Fitted values (on const. inf. scale)"
-				lab var hat_lever "Leverage (h_i of Hat matrix's diagonal)"
-			}
 			
 			quietly `oldformula'
 			
